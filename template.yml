@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >
+  graphQL-Api #magic___^_^___line Sample SAM Template for graphQL-Api #magic___^_^___line #magic___^_^___line
+Transform:
+- AWS::Serverless-2016-10-31
+
+Parameters:
+  UserPoolName:
+    Type: String
+    Default: MyUserPool
+    Description: The user pool name
+  UserPoolClientName:
+    Type: String
+    Default: MyUserPoolClient
+    Description: The user pool client name
+  AppSyncApiName:
+    Type: String
+    Default: MyGraphQLApi
+    Description: The GraphQL Api name
+
+Resources:
+  #Cognito User Pool
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Ref UserPoolName
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+      UsernameConfiguration:
+        CaseSensitive: false
+      UsernameAttributes:
+      - email
+      AutoVerifiedAttributes:
+      - email
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+          RequireUppercase: false
+      VerificationMessageTemplate:
+        DefaultEmailOption: CONFIRM_WITH_CODE
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      UserPoolId: !Ref UserPool
+      ClientName: !Ref UserPoolClientName
+      GenerateSecret: false
+      RefreshTokenValidity: 30
+  #AppSync Api
+  GraphqlApi:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./graphql/template.yml
+      Parameters:
+        AppSyncApiName: !Ref AppSyncApiName
+        UserPoolId: !Ref UserPool
+
+Outputs:
+  UserPoolId:
+    Description: "The id for the user pool"
+    Value: !Ref UserPool

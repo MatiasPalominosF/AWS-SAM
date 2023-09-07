@@ -1,0 +1,111 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  GraphQL API Template #magic___^_^___line
+Transform:
+- AWS::Serverless-2016-10-31
+
+Parameters:
+  AppSyncApiName:
+    Type: String
+    Default: MyGraphQLApi
+    Description: The GraphQL Api Name
+  UserPoolId:
+    Type: String
+    Description: Cognito User Pool Id
+
+Globals:
+  Function:
+    Timeout: 5
+    Runtime: nodejs14.x
+    Handler: index.handler
+    Tracing: Active
+#API
+Resources:
+  GraphQLApi:
+    Type: AWS::AppSync::GraphQLApi
+    Properties:
+      Name: !Ref AppSyncApiName
+      AuthenticationType: AMAZON_COGNITO_USER_POOLS
+      UserPoolConfig:
+        UserPoolId: !Ref UserPoolId
+        AwsRegion: !Sub "${AWS::Region}"
+        DefaultAction: ALLOW
+  GraphQLSchema:
+    Type: AWS::AppSync::GraphQLSchema
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      DefinitionS3Location: "./schema.graphql"
+  #Roles
+  AppSyncServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: appsync.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Policies:
+      - PolicyName: AppSyncServiceRole
+        PolicyDocument:
+          Version: 2012-10-17
+          Statement:
+          - Effect: Allow
+            Action: lambda:invokeFunction
+            Resource:
+            - !Sub "arn:aws:lambda:${AWS::Region}:*:*"
+  #Lambda functions
+  createPetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: createPet
+      CodeUri: ./resolvers/createPet
+  getPetsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: getPets
+      CodeUri: ./resolvers/getPets
+  #Data Sources
+  createPetDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      Name: createPetDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt createPetFunction.Arn
+  getPetsDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      Name: getPetsDataSource
+      Type: AWS_LAMBDA
+      ServiceRoleArn: !GetAtt AppSyncServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt getPetsFunction.Arn
+  #Resolvers
+  createPetResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      FieldName: createPet
+      TypeName: Mutation
+      DataSourceName: !GetAtt createPetDataSource.Name
+      RequestMappingTemplate: '{ "version" : "2017-02-28", "operation": "Invoke", "payload": { "arguments": $util.toJson($context.arguments), "identity": $util.toJson($context.identity) } }'
+      ResponseMappingTemplate: $util.toJson($ctx.result)
+  getPetsResolver:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi.ApiId
+      FieldName: getPets
+      TypeName: Query
+      DataSourceName: !GetAtt getPetsDataSource.Name
+      RequestMappingTemplate: '{ "version" : "2017-02-28", "operation": "Invoke" }'
+      ResponseMappingTemplate: $util.toJson($ctx.result)
+Outputs:
+  ApiUrl:
+    Description: "The GraphQL endpoint"
+    Value: !GetAtt GraphQLApi.GraphQLUrl

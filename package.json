@@ -1,0 +1,12 @@
+{
+  "name": "graphql-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "deploy": "sam build && sam deploy"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
