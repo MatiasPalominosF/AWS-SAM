@@ -1,0 +1,3 @@
+version = 0.1
+[default.deploy.parameters]
+capabilities = "CAPABILITY_IAM CAPABILITY_AUTO_EXPAND"

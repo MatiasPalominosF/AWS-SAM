@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "fdeploy": "sam build && sam deploy --guided",
     "deploy": "sam build && sam deploy"
   },
   "keywords": [],
