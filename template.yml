@@ -17,8 +17,26 @@ Parameters:
     Type: String
     Default: MyGraphQLApi
     Description: The GraphQL Api name
+  DynamoDBName:
+    Type: String
+    Default: MyDBPet
+    Description: The DynamoDB Name
 
 Resources:
+  #DynamoDB Config
+  MyDBPet:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref DynamoDBName
+      AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
   #Cognito User Pool
   UserPool:
     Type: AWS::Cognito::UserPool
@@ -56,6 +74,7 @@ Resources:
       Parameters:
         AppSyncApiName: !Ref AppSyncApiName
         UserPoolId: !Ref UserPool
+        DynamoDBTableArn: !GetAtt MyDBPet.Arn
 
 Outputs:
   UserPoolId:

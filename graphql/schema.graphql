@@ -11,10 +11,12 @@ input createPetInput {
 
 type Query {
   getPets: [Pet]
+  getPetsDB: [Pet]
 }
 
 type Mutation {
   createPet(input: createPetInput): Pet
+  createPetDB(input: createPetInput): Pet
 }
 
 schema {
