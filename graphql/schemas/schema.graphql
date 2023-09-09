@@ -1,0 +1,23 @@
+type Pet {
+  id: ID!
+  name: String!
+  createdAt: AWSDateTime
+  updatedAt: AWSDateTime
+}
+
+input createPetInput {
+  name: String!
+}
+
+type Query {
+  getPets: [Pet]
+}
+
+type Mutation {
+  createPet(input: createPetInput): Pet
+}
+
+schema {
+  query: Query
+  mutation: Mutation
+}

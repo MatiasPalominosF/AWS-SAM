@@ -23,6 +23,7 @@ Parameters:
     Description: The DynamoDB Name
 
 Resources:
+  #Begin comments for AppSync, DynamoDB and API Gateway.
   #DynamoDB Config
   MyDBPet:
     Type: AWS::DynamoDB::Table
@@ -35,8 +36,57 @@ Resources:
       - AttributeName: id
         KeyType: HASH
       ProvisionedThroughput:
-        ReadCapacityUnits: 1
-        WriteCapacityUnits: 1
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+  #Policies for DynamoDB
+  PolicyDynamoDB:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Path: /service-role/
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - dynamodb:Scan
+          - dynamodb:Query
+          - dynamodb:GetItem
+          - dynamodb:PutItem
+          - dynamodb:DeleteItem
+          Resource:
+          - !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${MyDBPet}
+  #Role for DynamoDB
+  RoleAppSyncDynamoDB:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+      - !Ref PolicyDynamoDB
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - sts:AssumeRole
+          Principal:
+            Service:
+            - appsync.amazonaws.com
+  #Role for AppSyncCloudWatch
+  RoleAppSyncCloudWatch:
+    Type: AWS::IAM::Role
+    Properties:
+      ManagedPolicyArns:
+      - "arn:aws:iam::aws:policy/service-role/AWSAppSyncPushToCloudWatchLogs"
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Action:
+          - sts:AssumeRole
+          Principal:
+            Service:
+            - appsync.amazonaws.com
+  #End comments for AppSync, DynamoDB and API Gateway.
+  #Begin comments for API with Cognito Authentication.
   #Cognito User Pool
   UserPool:
     Type: AWS::Cognito::UserPool
@@ -66,7 +116,8 @@ Resources:
       ClientName: !Ref UserPoolClientName
       GenerateSecret: false
       RefreshTokenValidity: 30
-  #AppSync Api
+  #End comments for API with Cognito Authentication.
+  #AppSync Api With Auth Cognito.
   GraphqlApi:
     Type: AWS::Serverless::Application
     Properties:
@@ -74,12 +125,14 @@ Resources:
       Parameters:
         AppSyncApiName: !Ref AppSyncApiName
         UserPoolId: !Ref UserPool
+  #AppSync Api with API Gateway
   GraphqlApi2:
     Type: AWS::Serverless::Application
     Properties:
       Location: ./graphql/template2.yml
       Parameters:
-        UserPoolId: !Ref UserPool
+        ArnRoleAppSyncCloudWatch: !GetAtt RoleAppSyncCloudWatch.Arn
+        ArnRoleAppSyncDynamoDB: !GetAtt RoleAppSyncDynamoDB.Arn
 
 Outputs:
   UserPoolId:

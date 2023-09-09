@@ -34,7 +34,7 @@ Resources:
     Type: AWS::AppSync::GraphQLSchema
     Properties:
       ApiId: !GetAtt GraphQLApi.ApiId
-      DefinitionS3Location: "./schema.graphql"
+      DefinitionS3Location: "./schemas/schema.graphql"
   #Roles
   AppSyncServiceRole:
     Type: AWS::IAM::Role

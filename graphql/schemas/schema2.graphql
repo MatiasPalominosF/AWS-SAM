@@ -10,13 +10,13 @@ input createPetInput {
 }
 
 type Query {
-  getPets: [Pet]
-  getPetsDB(id: String!): [Pet]
+  getPetByIdDB(id: String!): Pet
+  getAllPetsDB: [Pet]
 }
 
 type Mutation {
-  createPet(input: createPetInput): Pet
   createPetDB(input: createPetInput): Pet
+  deletePetDB(id: String!): Pet
 }
 
 schema {
