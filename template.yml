@@ -74,7 +74,12 @@ Resources:
       Parameters:
         AppSyncApiName: !Ref AppSyncApiName
         UserPoolId: !Ref UserPool
-        DynamoDBTableArn: !GetAtt MyDBPet.Arn
+  GraphqlApi2:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./graphql/template2.yml
+      Parameters:
+        UserPoolId: !Ref UserPool
 
 Outputs:
   UserPoolId:

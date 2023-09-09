@@ -1,0 +1,103 @@
+Parameters:
+  DynamoDBName:
+    Type: String
+    Default: MyDBPet
+    Description: The DynamoDB Name
+  UserPoolId:
+    Type: String
+    Description: Cognito User Pool Id
+
+Resources:
+  GraphQLApi2:
+    Type: AWS::AppSync::GraphQLApi
+    Properties:
+      Name: MyGraphQLApi2
+      AuthenticationType: AMAZON_COGNITO_USER_POOLS
+      UserPoolConfig:
+        UserPoolId: !Ref UserPoolId
+        AwsRegion: !Sub "${AWS::Region}"
+        DefaultAction: ALLOW
+  Schema:
+    Type: AWS::AppSync::GraphQLSchema
+    Properties:
+      ApiId: !GetAtt GraphQLApi2.ApiId
+      DefinitionS3Location: ./schema.graphql
+  MyAppSyncServiceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: MyAppSyncServiceRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: appsync.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: MyPolicy
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: Allow
+            Action:
+            - "dynamodb:Query"
+            - "dynamodb:Scan"
+            - "dynamodb:GetItem"
+            - "dynamodb:PutItem"
+            - "dynamodb:UpdateItem"
+            - "dynamodb:DeleteItem"
+            Resource: "*"
+  DynamoDBDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt GraphQLApi2.ApiId
+      Name: DynamoDBDataSource
+      Type: AMAZON_DYNAMODB
+      ServiceRoleArn: !GetAtt MyAppSyncServiceRole.Arn
+      DynamoDBConfig:
+        TableName: !Ref DynamoDBName
+        AwsRegion: !Sub "${AWS::Region}"
+  #Resolvers
+  CreatePetResolverForDB:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi2.ApiId
+      DataSourceName: !GetAtt DynamoDBDataSource.Name
+      FieldName: createPetDB
+      TypeName: Mutation
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "PutItem",
+          "key": {
+            "id": { "S": "$util.autoId()" }
+          },
+          "attributeValues": {
+            "name": $util.dynamodb.toDynamoDBJson($ctx.args.name),
+            "createdAt": { "S": "$util.time.nowISO8601()" },
+            "updatedAt": { "S": "$util.time.nowISO8601()" }
+          }
+        }
+      ResponseMappingTemplate: $util.toJson($ctx.result)
+  GetPetResolverForDB:
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt GraphQLApi2.ApiId
+      DataSourceName: !GetAtt DynamoDBDataSource.Name
+      FieldName: getPetsDB
+      TypeName: Query
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "operation": "GetItem",
+          "key": {
+            "id": $util.dynamodb.toDynamoDBJson($ctx.args.id)
+          }
+        }
+      ResponseMappingTemplate: $util.toJson($ctx.result)
+
+Outputs:
+  GraphQLApiEndpoint:
+    Description: "URL de punto final de la API de GraphQL"
+    Value: !GetAtt GraphQLApi2.GraphQLUrl
+

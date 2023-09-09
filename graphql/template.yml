@@ -12,13 +12,6 @@ Parameters:
   UserPoolId:
     Type: String
     Description: Cognito User Pool Id
-  DynamoDBName:
-    Type: String
-    Default: MyDBPet
-    Description: The DynamoDB Name
-  DynamoDBTableArn:
-    Type: String
-    Description: ARN DynamoDB
 
 Globals:
   Function:
@@ -43,31 +36,6 @@ Resources:
       ApiId: !GetAtt GraphQLApi.ApiId
       DefinitionS3Location: "./schema.graphql"
   #Roles
-  DynamoDBRole:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-        - Effect: Allow
-          Principal:
-            Service: dynamodb.amazonaws.com
-          Action:
-          - sts:AssumeRole
-      Policies:
-      - PolicyName: DynamoDBAccessPolicy
-        PolicyDocument:
-          Version: 2012-10-17
-          Statement:
-          - Effect: Allow
-            Action:
-            - dynamodb:Query
-            - dynamodb:Scan
-            - dynamodb:GetItem
-            - dynamodb:PutItem
-            - dynamodb:UpdateItem
-            - dynamodb:DeleteItem
-            Resource: !Ref DynamoDBTableArn
   AppSyncServiceRole:
     Type: AWS::IAM::Role
     Properties:
@@ -100,16 +68,6 @@ Resources:
       FunctionName: getPets
       CodeUri: ./resolvers/getPets
   #Data Sources
-  PetDataSourceDB: # DataSource used to DynamoDB
-    Type: AWS::AppSync::DataSource
-    Properties:
-      ApiId: !GetAtt GraphQLApi.ApiId
-      Name: PetDataSourceDB
-      Type: AMAZON_DYNAMODB
-      ServiceRoleArn: !GetAtt DynamoDBRole.Arn
-      DynamoDBConfig:
-        TableName: !Ref DynamoDBName
-        AwsRegion: !Sub "${AWS::Region}"
   createPetDataSource:
     Type: AWS::AppSync::DataSource
     Properties:
@@ -146,37 +104,6 @@ Resources:
       TypeName: Query
       DataSourceName: !GetAtt getPetsDataSource.Name
       RequestMappingTemplate: '{ "version" : "2017-02-28", "operation": "Invoke" }'
-      ResponseMappingTemplate: $util.toJson($ctx.result)
-  #Resolvers used by DB
-  createPetResolverForDB:
-    Type: AWS::AppSync::Resolver
-    Properties:
-      ApiId: !GetAtt GraphQLApi.ApiId
-      FieldName: createPetDB
-      TypeName: Mutation
-      DataSourceName: PetDataSourceDB
-      RequestMappingTemplate: >
-        {
-          "version" : "2017-02-28",
-          "operation": "PutItem",
-          "key": {
-            "id": $util.dynamodb.toDynamoDBJson($util.autoId())
-          },
-          "attributeValues": {
-            "name": $util.dynamodb.toDynamoDBJson($ctx.args.input.name),
-            "createdAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601()),
-            "updatedAt": $util.dynamodb.toDynamoDBJson($util.time.nowISO8601())
-          }
-        }
-      ResponseMappingTemplate: $util.toJson($ctx.result)
-  getPetsResolverForDB:
-    Type: AWS::AppSync::Resolver
-    Properties:
-      ApiId: !GetAtt GraphQLApi.ApiId
-      FieldName: getPetsDB
-      TypeName: Query
-      DataSourceName: PetDataSourceDB
-      RequestMappingTemplate: '{ "version" : "2017-02-28", "operation": "Scan" }'
       ResponseMappingTemplate: $util.toJson($ctx.result)
 
 Outputs:

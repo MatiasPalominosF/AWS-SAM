@@ -11,7 +11,7 @@ input createPetInput {
 
 type Query {
   getPets: [Pet]
-  getPetsDB: [Pet]
+  getPetsDB(id: String!): [Pet]
 }
 
 type Mutation {
