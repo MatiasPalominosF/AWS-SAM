@@ -1,6 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: >-
-  GraphQL API Template #magic___^_^___line
+Description: GraphQL using API Gateway, AppSync and Cognito
 Transform:
 - AWS::Serverless-2016-10-31
 

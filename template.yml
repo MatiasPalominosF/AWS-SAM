@@ -1,6 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: >
-  graphQL-Api #magic___^_^___line Sample SAM Template for graphQL-Api #magic___^_^___line #magic___^_^___line
+Description: Technical Challenge Defontana Ingeniero Serverless AWS Junior
 Transform:
 - AWS::Serverless-2016-10-31
 
@@ -35,9 +34,7 @@ Resources:
       KeySchema:
       - AttributeName: id
         KeyType: HASH
-      ProvisionedThroughput:
-        ReadCapacityUnits: 5
-        WriteCapacityUnits: 5
+      BillingMode: PAY_PER_REQUEST
   #Policies for DynamoDB
   PolicyDynamoDB:
     Type: AWS::IAM::ManagedPolicy
