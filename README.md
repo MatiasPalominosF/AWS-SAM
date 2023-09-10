@@ -1,6 +1,7 @@
 # Technical Challenge Defontana Junior AWS Serverless Engineer
 
-This repository contains a serverless application developed with AWS SAM, Node.js, and DynamoDB. The application offers CRUD (Create, Read, Update, Delete) operations to manage users.
+This repository contains a serverless application developed with AWS SAM, Node.js, Appsync,
+Lambda, Api Gateway, DynamoDB and StepFunctions. The application offers CRUD (Create, Read, Update, Delete) operations to manage users and Pets. Furthermore, it provides CRUD operations for use through GraphQL.
 
 ## Prerequisites
 
