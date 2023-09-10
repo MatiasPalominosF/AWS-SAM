@@ -1,3 +1,10 @@
 version = 0.1
 [default.deploy.parameters]
-capabilities = "CAPABILITY_IAM CAPABILITY_AUTO_EXPAND CAPABILITY_NAMED_IAM"
+stack_name = "devsafio"
+resolve_s3 = true
+s3_prefix = "devsafio"
+region = "us-east-1"
+capabilities = "CAPABILITY_AUTO_EXPAND CAPABILITY_NAMED_IAM"
+disable_rollback = true
+parameter_overrides = "UserPoolName=\"MyUserPool\" UserPoolClientName=\"MyUserPoolClient\" AppSyncApiName=\"MyGraphQLApi\" DynamoDBName=\"MyDBPet\" DynamoDBClient=\"UserTable\""
+image_repositories = []

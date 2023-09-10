@@ -1,0 +1,95 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Function lambda simple and CRUD DynamoDB
+Transform: AWS::Serverless-2016-10-31
+
+Parameters:
+  DynamoDBRef:
+    Type: String
+    Description: The ref of UserTable
+
+Globals:
+  Function:
+    Timeout: 5
+    Runtime: nodejs14.x
+    Handler: index.handler
+    Tracing: Active
+
+Resources:
+  MySimpleLambdaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: mysimplelambda
+      CodeUri: ./mysimplelambda
+  CreateUserFunction:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      FunctionName: createuser
+      CodeUri: ./crudsimpledb/createuser
+      Environment:
+        Variables:
+          TABLE_CLIENT: !Ref DynamoDBRef
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: !Ref DynamoDBRef
+      Events:
+        CreateUser:
+          Type: Api
+          Properties:
+            Path: /users
+            Method: POST
+  DeleteUserFunction:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      FunctionName: deleteuser
+      CodeUri: ./crudsimpledb/deleteuser
+      Environment:
+        Variables:
+          TABLE_CLIENT: !Ref DynamoDBRef
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: !Ref DynamoDBRef
+      Events:
+        DeleteUser:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: DELETE
+  GetAllUsersFunction:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      FunctionName: getallusers
+      CodeUri: ./crudsimpledb/getallusers
+      Environment:
+        Variables:
+          TABLE_CLIENT: !Ref DynamoDBRef
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: !Ref DynamoDBRef
+      Events:
+        GetAllUsers:
+          Type: Api
+          Properties:
+            Path: /users/
+            Method: GET
+  UpdateUserFunction:
+    Type: "AWS::Serverless::Function"
+    Properties:
+      FunctionName: updateuser
+      CodeUri: ./crudsimpledb/updateuser
+      Environment:
+        Variables:
+          TABLE_CLIENT: !Ref DynamoDBRef
+      Policies:
+      - DynamoDBCrudPolicy:
+          TableName: !Ref DynamoDBRef
+      Events:
+        UpdateUser:
+          Type: Api
+          Properties:
+            Path: /users/{id}
+            Method: PUT
+Outputs:
+  MyApi:
+    Description: API Gateway endpoint URL
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/users/"
+

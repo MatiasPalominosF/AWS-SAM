@@ -20,8 +20,24 @@ Parameters:
     Type: String
     Default: MyDBPet
     Description: The DynamoDB Name
+  DynamoDBClient:
+    Type: String
+    Default: UserTable
+    Description: The DynamoDB Name
 
 Resources:
+  #Begin a comments dynamo to Simple CRUD with DynamoDB.
+  UserTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref DynamoDBClient
+      AttributeDefinitions:
+      - AttributeName: id
+        AttributeType: S
+      KeySchema:
+      - AttributeName: id
+        KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
   #Begin comments for AppSync, DynamoDB and API Gateway.
   #DynamoDB Config
   MyDBPet:
@@ -130,6 +146,13 @@ Resources:
       Parameters:
         ArnRoleAppSyncCloudWatch: !GetAtt RoleAppSyncCloudWatch.Arn
         ArnRoleAppSyncDynamoDB: !GetAtt RoleAppSyncDynamoDB.Arn
+  #Lambda funtions and CRUD using ApiGateway and dynamoDB
+  LambdaFunctionsAndCRUD:
+    Type: AWS::Serverless::Application
+    Properties:
+      Location: ./graphql/template3.yml
+      Parameters:
+        DynamoDBRef: !Ref UserTable
 
 Outputs:
   UserPoolId:

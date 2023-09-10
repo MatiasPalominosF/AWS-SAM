@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "fdeploy": "sam build && sam deploy --guided",
+    "firstdeploy": "sam build && sam deploy --guided --capabilities CAPABILITY_AUTO_EXPAND CAPABILITY_NAMED_IAM",
     "deploy": "sam build && sam deploy"
   },
   "keywords": [],
